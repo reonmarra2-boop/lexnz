@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexNZ — NZ Legal Study Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0f14;color:#e8e0d0;font-family:'Outfit',sans-serif;min-height:100vh}
+.app{min-height:100vh;background:#0d0f14;background-image:radial-gradient(ellipse at 20% 0%,rgba(200,169,110,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(143,168,208,.06) 0%,transparent 60%);display:flex;flex-direction:column}
+.nav{display:flex;border-bottom:1px solid rgba(200,169,110,.12);background:rgba(0,0,0,.25);overflow-x:auto;flex-shrink:0}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:#c8a96e;padding:.8rem 1.1rem;letter-spacing:-.02em;border-right:1px solid rgba(200,169,110,.12);flex-shrink:0;line-height:1.1}
+.nav-logo small{font-family:'DM Mono',monospace;font-size:.42rem;letter-spacing:.15em;color:rgba(200,169,110,.4);display:block;text-transform:uppercase;margin-top:.15rem}
+.nav-tabs{display:flex}
+.nav-tab{background:none;border:none;border-bottom:2px solid transparent;padding:0 .85rem;cursor:pointer;white-space:nowrap;font-family:'Outfit',sans-serif;font-size:.73rem;color:rgba(232,224,208,.35);transition:all .2s;display:flex;align-items:center;gap:.3rem;min-height:50px}
+.nav-tab:hover{color:rgba(232,224,208,.65)}
+.nav-tab.active{color:#c8a96e;border-bottom-color:#c8a96e}
+.badge{background:rgba(200,169,110,.15);border-radius:10px;padding:.08rem .32rem;font-size:.52rem;font-family:'DM Mono',monospace;color:#c8a96e}
+.main{flex:1;padding:1.6rem 2rem;max-width:1100px;width:100%;margin:0 auto}
+@media(max-width:700px){.main{padding:.9rem}}
+.pane{display:none}.pane.on{display:block}
+.sec{margin-bottom:1.6rem}
+.lbl{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(200,169,110,.5);margin-bottom:.65rem;display:block}
+.row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:.65rem}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.65rem}
+@media(max-width:700px){.grid4{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:repeat(2,1fr)}}
+.area-btn{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.6rem .7rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.4rem;font-family:'Outfit',sans-serif;font-size:.78rem;color:rgba(232,224,208,.55);text-align:left;width:100%}
+.area-btn:hover,.area-btn.on{background:rgba(255,255,255,.06);color:#e8e0d0}
+.area-btn.on{border-color:var(--ac,#c8a96e);background:rgba(200,169,110,.08)}
+.chip{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:.35rem .75rem;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;font-size:.73rem;color:rgba(232,224,208,.5);display:inline-flex;align-items:center;gap:.28rem}
+.chip:hover{background:rgba(255,255,255,.06);color:#e8e0d0}
+.chip.on{background:rgba(200,169,110,.12);border-color:rgba(200,169,110,.4);color:#c8a96e}
+.chip.blue.on{background:rgba(143,168,208,.1);border-color:rgba(143,168,208,.35);color:#8fa8d0}
+.juris-btn{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:.52rem .72rem;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:.1rem;text-align:left;position:relative;width:100%}
+.juris-btn:hover{background:rgba(255,255,255,.05)}
+.juris-btn.binding{border-color:rgba(200,169,110,.28);background:rgba(200,169,110,.05)}
+.juris-btn.on{border-color:var(--jc,#c8a96e);background:rgba(255,255,255,.04)}
+.juris-btn.binding.on{border-color:#c8a96e;background:rgba(200,169,110,.1)}
+.j-top{display:flex;align-items:center;gap:.32rem}
+.j-name{font-size:.76rem;font-weight:500;color:rgba(232,224,208,.7);font-family:'Outfit',sans-serif}
+.juris-btn.on .j-name{color:#e8e0d0}
+.j-note{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.06em;color:rgba(232,224,208,.2);text-transform:uppercase}
+.juris-btn.on .j-note{color:var(--jc,#c8a96e);opacity:.75}
+.j-courts{font-family:'DM Mono',monospace;font-size:.48rem;color:rgba(232,224,208,.16)}
+.always-on{position:absolute;top:.32rem;right:.45rem;font-family:'DM Mono',monospace;font-size:.46rem;letter-spacing:.1em;color:#c8a96e;text-transform:uppercase;opacity:.5}
+.juris-info{background:rgba(143,168,208,.05);border:1px solid rgba(143,168,208,.1);border-radius:8px;padding:.5rem .85rem;font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(232,224,208,.38);letter-spacing:.04em;line-height:1.5;margin-top:.5rem}
+.qbox{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:.85rem 1rem;display:flex;flex-direction:column;gap:.65rem;transition:border-color .2s}
+.qbox:focus-within{border-color:rgba(200,169,110,.28)}
+textarea.qi{background:transparent;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:.9rem;color:#e8e0d0;resize:none;min-height:72px;width:100%;line-height:1.65}
+textarea.qi::placeholder{color:rgba(232,224,208,.18)}
+.qfoot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.05);padding-top:.65rem;gap:.5rem;flex-wrap:wrap}
+.qmeta{font-family:'DM Mono',monospace;font-size:.57rem;color:rgba(232,224,208,.22);letter-spacing:.07em}
+.btn-gold{background:#c8a96e;border:none;border-radius:8px;padding:.48rem 1.2rem;font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:500;color:#0d0f14;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.32rem}
+.btn-gold:hover:not(:disabled){background:#d4b87a;transform:translateY(-1px)}
+.btn-gold:disabled{opacity:.36;cursor:not-allowed}
+.btn-ghost{background:none;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:.26rem .7rem;font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.1em;color:rgba(232,224,208,.28);cursor:pointer;transition:all .2s}
+.btn-ghost:hover{color:#e8e0d0;border-color:rgba(255,255,255,.2)}
+.btn-sm{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.18);border-radius:6px;padding:.26rem .62rem;font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.07em;color:rgba(200,169,110,.65);cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-sm:hover{background:rgba(200,169,110,.15);color:#c8a96e}
+.btn-icon{background:none;border:none;cursor:pointer;font-size:.9rem;padding:.16rem .32rem;border-radius:4px;transition:all .15s;opacity:.42;line-height:1}
+.btn-icon:hover,.btn-icon.on{opacity:1;background:rgba(255,255,255,.05)}
+.add-toggle{cursor:pointer;font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:rgba(200,169,110,.55);border:1px solid rgba(200,169,110,.2);border-radius:6px;padding:.26rem .62rem;background:none;transition:all .2s;white-space:nowrap}
+.add-toggle:hover{color:#c8a96e;border-color:rgba(200,169,110,.4)}
+.res-panel{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;animation:fadeIn .3s ease;margin-bottom:.8rem}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.res-hdr{padding:.7rem 1.05rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;justify-content:space-between;background:rgba(200,169,110,.04);gap:.45rem}
+.res-tag{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.13em;text-transform:uppercase;color:#c8a96e}
+.res-q{font-size:.77rem;color:rgba(232,224,208,.56);margin-top:.16rem;font-family:'Outfit',sans-serif}
+.res-area{font-family:'DM Mono',monospace;font-size:.57rem;color:rgba(232,224,208,.28);letter-spacing:.07em}
+.res-body{padding:1.1rem 1.3rem;font-size:.87rem;line-height:1.75;color:rgba(232,224,208,.82);white-space:pre-wrap;font-family:'Outfit',sans-serif}
+.res-body strong{color:#c8a96e;font-weight:600}
+.loading{display:flex;align-items:center;gap:.42rem;padding:1.2rem;color:rgba(232,224,208,.38);font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.1em}
+.dot{width:5px;height:5px;border-radius:50%;background:#c8a96e;animation:pulse 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.empty{text-align:center;padding:2.5rem 2rem;color:rgba(232,224,208,.18)}
+.empty-icon{font-size:2rem;margin-bottom:.6rem;opacity:.32}
+.empty-text{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic}
+.ai-box{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.13);border-radius:12px;padding:1.05rem 1.3rem;margin-top:.85rem;animation:fadeIn .3s ease}
+.ai-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:#c8a96e;margin-bottom:.6rem}
+.ai-body{font-size:.86rem;line-height:1.75;color:rgba(232,224,208,.82);white-space:pre-wrap;font-family:'Outfit',sans-serif}
+.ai-body strong{color:#c8a96e}
+.ff{border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.07);transition:border-color .2s;margin-bottom:.8rem}
+.ff:focus-within{border-color:var(--fc,#8fa8d0)}
+.ff-hdr{padding:.52rem .9rem;display:flex;align-items:center;justify-content:space-between;background:rgba(143,168,208,.04);border-bottom:1px solid rgba(255,255,255,.05)}
+.ff-lbl{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;color:var(--fc,#8fa8d0);text-transform:uppercase}
+.ff-hint{font-family:'DM Mono',monospace;font-size:.5rem;color:rgba(232,224,208,.2);letter-spacing:.04em}
+.ff textarea{background:transparent;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:.86rem;color:#e8e0d0;resize:none;min-height:70px;width:100%;line-height:1.65;padding:.68rem .9rem}
+.ff textarea::placeholder{color:rgba(232,224,208,.17)}
+.finput{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:.46rem .7rem;font-family:'Outfit',sans-serif;font-size:.82rem;color:#e8e0d0;outline:none;width:100%;transition:border-color .2s}
+.finput:focus{border-color:rgba(200,169,110,.28)}
+.finput::placeholder{color:rgba(232,224,208,.18)}
+.fsel{background:#161820;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:.46rem .7rem;font-family:'Outfit',sans-serif;font-size:.82rem;color:#e8e0d0;outline:none;width:100%}
+.flabel{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(200,169,110,.48);margin-bottom:.26rem;display:block}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+@media(max-width:560px){.frow{grid-template-columns:1fr}}
+.scenario-box{background:rgba(143,168,208,.05);border:1px solid rgba(143,168,208,.13);border-radius:14px;padding:1.25rem 1.35rem;margin-bottom:1.2rem}
+.scen-lbl{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.13em;text-transform:uppercase;color:#8fa8d0;margin-bottom:.52rem}
+.scen-text{font-size:.88rem;line-height:1.75;color:rgba(232,224,208,.78);font-family:'Outfit',sans-serif}
+.scen-hint{margin-top:.65rem;font-family:'DM Mono',monospace;font-size:.57rem;color:rgba(143,168,208,.42);letter-spacing:.04em}
+.ilac-acc{display:flex;flex-direction:column;gap:.65rem}
+.ilac-card{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.07);cursor:pointer}
+.ilac-card.open{border-color:var(--sc,#8fa8d0)}
+.ilac-hdr{padding:.9rem 1.05rem;display:flex;align-items:center;gap:.85rem;background:rgba(255,255,255,.02)}
+.ilac-card.open .ilac-hdr{background:rgba(143,168,208,.05)}
+.ilac-letter{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:700;color:var(--sc,#8fa8d0);line-height:1;flex-shrink:0;width:2rem;text-align:center}
+.ilac-title{font-size:.9rem;font-weight:500;color:rgba(232,224,208,.78);font-family:'Outfit',sans-serif}
+.ilac-card.open .ilac-title{color:#e8e0d0}
+.ilac-sub{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.1em;color:rgba(232,224,208,.27);text-transform:uppercase;margin-top:.1rem}
+.ilac-chev{margin-left:auto;color:rgba(232,224,208,.27);font-size:.72rem;transition:transform .2s}
+.ilac-card.open .ilac-chev{transform:rotate(180deg);color:var(--sc,#8fa8d0)}
+.ilac-body{padding:0 1.05rem 1.05rem 3.7rem;display:none}
+.ilac-card.open .ilac-body{display:block}
+.ilac-desc{font-size:.85rem;line-height:1.7;color:rgba(232,224,208,.66);margin-bottom:.65rem}
+.ilac-tips{display:flex;flex-direction:column;gap:.35rem}
+.ilac-tip{display:flex;gap:.52rem;align-items:flex-start;font-size:.79rem;color:rgba(232,224,208,.5);line-height:1.5}
+.tip-dot{width:5px;height:5px;border-radius:50%;background:var(--sc,#8fa8d0);margin-top:.46rem;flex-shrink:0}
+.ilac-eg{margin-top:.65rem;background:rgba(255,255,255,.025);border-left:3px solid var(--sc,#8fa8d0);border-radius:0 8px 8px 0;padding:.68rem .88rem;font-size:.79rem;color:rgba(232,224,208,.57);line-height:1.6;font-style:italic}
+.ilac-eg-lbl{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sc,#8fa8d0);margin-bottom:.36rem;font-style:normal}
+.quiz-prog{display:flex;align-items:center;gap:.7rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.quiz-score{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:#c8a96e}
+.quiz-score-lbl{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,224,208,.26);margin-top:.08rem}
+.quiz-bar-wrap{flex:1;min-width:100px;height:4px;background:rgba(255,255,255,.06);border-radius:2px}
+.quiz-bar{height:100%;background:#c8a96e;border-radius:2px;transition:width .4s ease}
+.quiz-qbox{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1.3rem 1.4rem;margin-bottom:.9rem}
+.quiz-area{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.13em;text-transform:uppercase;color:rgba(200,169,110,.45);margin-bottom:.65rem}
+.quiz-q{font-family:'Outfit',sans-serif;font-size:.97rem;line-height:1.6;color:#e8e0d0;font-weight:500}
+.quiz-opts{display:flex;flex-direction:column;gap:.52rem;margin-top:1rem}
+.quiz-opt{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.65rem .95rem;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;font-size:.85rem;color:rgba(232,224,208,.7);text-align:left;display:flex;align-items:center;gap:.55rem;width:100%}
+.quiz-opt:hover:not([disabled]){background:rgba(255,255,255,.06);color:#e8e0d0;transform:translateX(2px)}
+.quiz-opt[disabled]{cursor:default}
+.quiz-opt.correct{background:rgba(122,184,160,.12);border-color:rgba(122,184,160,.5);color:#7ab8a0}
+.quiz-opt.wrong{background:rgba(224,112,112,.1);border-color:rgba(224,112,112,.4);color:#e07070}
+.opt-letter{font-family:'DM Mono',monospace;font-size:.6rem;width:1.2rem;flex-shrink:0;opacity:.5}
+.quiz-expl{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.13);border-radius:10px;padding:.85rem 1.05rem;margin-top:.8rem;font-size:.83rem;line-height:1.65;color:rgba(232,224,208,.7);font-family:'Outfit',sans-serif;animation:fadeIn .3s ease}
+.quiz-expl strong{color:#c8a96e}
+.quiz-done{text-align:center;padding:2.5rem}
+.final-score{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:700;color:#c8a96e}
+.final-lbl{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(232,224,208,.28);margin-top:.28rem;margin-bottom:1.4rem}
+.fc-wrap{perspective:1200px;cursor:pointer;margin-bottom:.9rem;min-height:220px}
+.fc{width:100%;min-height:220px;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.fc.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;top:0;left:0;width:100%;min-height:220px;backface-visibility:hidden;border-radius:16px;padding:1.7rem 1.9rem;display:flex;flex-direction:column;justify-content:center}
+.fc-front{background:rgba(143,168,208,.08);border:1px solid rgba(143,168,208,.18)}
+.fc-back{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.18);transform:rotateY(180deg)}
+.fc-lbl{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.75rem;opacity:.42}
+.fc-front .fc-lbl{color:#8fa8d0}.fc-back .fc-lbl{color:#c8a96e}
+.fc-text{font-family:'Outfit',sans-serif;font-size:.97rem;line-height:1.7;color:#e8e0d0}
+.fc-back .fc-text{font-size:.86rem;white-space:pre-wrap;color:rgba(232,224,208,.85)}
+.fc-hint{font-family:'DM Mono',monospace;font-size:.57rem;color:rgba(232,224,208,.23);margin-top:.9rem;letter-spacing:.07em}
+.fc-nav{display:flex;align-items:center;justify-content:space-between;gap:.9rem;margin-top:.45rem}
+.fc-dots{display:flex;gap:.28rem;flex-wrap:wrap;justify-content:center;flex:1}
+.fc-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.1);transition:all .2s;cursor:pointer;border:none}
+.fc-dot.active{background:#c8a96e}.fc-dot.seen{background:rgba(200,169,110,.32)}
+.fc-count{font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(232,224,208,.28);letter-spacing:.1em;text-align:center;margin-top:.4rem}
+.case-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.42rem}
+.case-name{font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:600;color:#c8a96e;font-style:italic}
+.case-cit{font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(232,224,208,.37);letter-spacing:.04em}
+.case-area{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,224,208,.2)}
+.case-principle{font-size:.79rem;line-height:1.5;color:rgba(232,224,208,.6)}
+.case-foot{display:flex;align-items:center;justify-content:space-between;padding-top:.36rem;border-top:1px solid rgba(255,255,255,.05);margin-top:auto}
+.case-tag-pill{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.07em;padding:.1rem .42rem;border-radius:10px;background:rgba(200,169,110,.09);color:rgba(200,169,110,.62)}
+.gloss-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.85rem .95rem}
+.gloss-term{font-family:'Cormorant Garamond',serif;font-size:.97rem;font-weight:600;color:#c8a96e;margin-bottom:.24rem}
+.gloss-area{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,224,208,.2);margin-bottom:.42rem}
+.gloss-def{font-size:.8rem;line-height:1.6;color:rgba(232,224,208,.6);font-family:'Outfit',sans-serif}
+.bm-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;margin-bottom:.72rem}
+.bm-hdr{padding:.62rem .92rem;background:rgba(200,169,110,.03);border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;justify-content:space-between;gap:.45rem}
+.bm-meta{font-family:'DM Mono',monospace;font-size:.57rem;color:rgba(232,224,208,.27);letter-spacing:.07em}
+.bm-q{font-size:.79rem;color:rgba(232,224,208,.65);margin-top:.16rem;font-family:'Outfit',sans-serif}
+.bm-body{padding:.85rem 1rem;font-size:.82rem;line-height:1.68;color:rgba(232,224,208,.7);white-space:pre-wrap;max-height:185px;overflow-y:auto}
+.bm-body strong{color:#c8a96e}
+.search-input{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:.45rem .72rem;font-family:'Outfit',sans-serif;font-size:.82rem;color:#e8e0d0;outline:none;width:100%;max-width:260px;transition:border-color .2s}
+.search-input:focus{border-color:rgba(200,169,110,.28)}
+.search-input::placeholder{color:rgba(232,224,208,.18)}
+.save-ok{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.07em;color:rgba(122,184,160,.52);display:none;align-items:center;gap:.28rem}
+.save-ok.show{display:flex}
+.offline-note{background:rgba(143,168,208,.05);border:1px solid rgba(143,168,208,.1);border-radius:8px;padding:.5rem .9rem;font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(143,168,208,.5);margin-bottom:1rem;display:none}
+.offline-note.show{display:block}
+.api-key-bar{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);border-radius:10px;padding:.7rem 1rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.api-key-bar label{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,169,110,.6);flex-shrink:0}
+.api-key-bar input{flex:1;min-width:180px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.4rem .7rem;font-family:'DM Mono',monospace;font-size:.75rem;color:#e8e0d0;outline:none}
+.api-key-bar input::placeholder{color:rgba(232,224,208,.2)}
+.api-key-note{font-family:'DM Mono',monospace;font-size:.55rem;color:rgba(232,224,208,.28);letter-spacing:.04em;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <div class="nav-logo">LexNZ <small>NZ Legal Study Tool · v3.0</small></div>
+    <div class="nav-tabs" id="navTabs"></div>
+  </nav>
+  <main class="main" id="mainArea"></main>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const LAW_AREAS=[
+  {id:"family",label:"Family Law",icon:"⚖️",color:"#c8a96e"},
+  {id:"criminal",label:"Criminal Law",icon:"🔒",color:"#e07070"},
+  {id:"contract",label:"Contract Law",icon:"📜",color:"#7ab8a0"},
+  {id:"treaty",label:"Treaty / Constitutional",icon:"🪶",color:"#8fa8d0"},
+  {id:"tort",label:"Tort Law",icon:"⚡",color:"#b07fd4"},
+  {id:"property",label:"Property Law",icon:"🏛️",color:"#d4a96e"},
+  {id:"employment",label:"Employment Law",icon:"🤝",color:"#6eafd4"},
+  {id:"evidence",label:"Evidence Law",icon:"🔍",color:"#d4846e"},
+];
+const QUERY_TYPES=[
+  {id:"cases",label:"Cases & Citations",icon:"📚"},
+  {id:"arguments",label:"Build an Argument",icon:"⚖️"},
+  {id:"counter",label:"Counter-Arguments",icon:"🔄"},
+  {id:"rules",label:"Rules & Legislation",icon:"📖"},
+  {id:"explain",label:"Explain a Concept",icon:"💡"},
+];
+const JURISDICTIONS=[
+  {id:"nz",label:"New Zealand",flag:"🇳🇿",type:"binding",note:"Primary — Binding Authority",color:"#c8a96e",courts:"NZSC, NZCA, NZHC"},
+  {id:"uk",label:"England & Wales",flag:"ENG",type:"persuasive",note:"Persuasive — Shared Common Law",color:"#8fa8d0",courts:"UKSC, EWCA, EWHC"},
+  {id:"au",label:"Australia",flag:"🇦🇺",type:"persuasive",note:"Persuasive — Commonwealth",color:"#7ab8a0",courts:"HCA, FCAFC, FCA"},
+  {id:"ca",label:"Canada",flag:"🇨🇦",type:"persuasive",note:"Persuasive — Commonwealth",color:"#e07070",courts:"SCC, FCA"},
+  {id:"ie",label:"Ireland",flag:"🇮🇪",type:"persuasive",note:"Persuasive — Common Law",color:"#7ab870",courts:"IESC, IECA"},
+  {id:"us",label:"United States",flag:"🇺🇸",type:"persuasive",note:"Persuasive — Limited Weight",color:"#b07fd4",courts:"SCOTUS, Circuit Courts"},
+];
+const PEEAL_FIELDS=[
+  {id:"point",label:"P — Point",ph:"State your legal point or proposition clearly...",hint:"What is the main legal argument?"},
+  {id:"explanation",label:"E — Explanation",ph:"Explain the relevant law, rule, or principle...",hint:"What does the law say?"},
+  {id:"evidence",label:"E — Evidence",ph:"Cite the cases or authority that support this...",hint:"Which cases back this up?"},
+  {id:"application",label:"A — Application",ph:"Apply the law to your specific facts...",hint:"How does the law apply to the facts?"},
+  {id:"link",label:"L — Link",ph:"Link back to your point and conclude...",hint:"Restate why your point is established."},
+];
+const ILAC_FIELDS=[
+  {id:"issue",label:"I — Issue",color:"#8fa8d0",ph:"Frame the legal issue as a precise question...",hint:"Who did what to whom, under which law?"},
+  {id:"law",label:"L — Law",color:"#c8a96e",ph:"State the applicable legal rules, tests, and cite your authority...",hint:"Statute + leading case + elements of the test"},
+  {id:"application",label:"A — Application",color:"#7ab8a0",ph:"Apply each element of the law to the specific facts...",hint:"Work through element by element"},
+  {id:"conclusion",label:"C — Conclusion",color:"#b07fd4",ph:"Answer the issue directly and state the legal consequence...",hint:"Yes or no — and what does that mean legally?"},
+];
+const ILAC_LEARN=[
+  {id:"issue",letter:"I",label:"Issue",sub:"Identify the legal question",color:"#8fa8d0",
+    desc:"The Issue is the precise legal question the court must answer. Frame it as a specific question naming the parties, act, and legal rule at stake.",
+    tips:["Frame it as a clear question — who did what, to whom, under which law?","Be specific — name the parties, the act, and the legal rule","One issue per paragraph — never bundle multiple questions","The issue is hidden in the facts — train yourself to spot it"],
+    eg:{lbl:"Example — Tort Law",text:"Did Marcus owe a duty of care to Lena when he left his vehicle unlocked with the engine running in a busy carpark, resulting in it being stolen and used to injure her?"}},
+  {id:"law",letter:"L",label:"Law",sub:"State the applicable legal rules",color:"#c8a96e",
+    desc:"Set out the legal rules, principles, and tests that govern the issue. Cite statute or case authority. This is where you demonstrate knowledge of the law.",
+    tips:["Cite the statute first if one applies, then supporting cases","State the test or elements — e.g. the three-stage duty of care test","Include the key NZ case that confirmed the rule","If using persuasive authority, label it clearly: (UK — persuasive)"],
+    eg:{lbl:"Example — Tort Law",text:"Under Donoghue v Stevenson [1932] AC 562 (UK — persuasive) and South Pacific Manufacturing [1992] 2 NZLR 282, duty of care requires: (1) reasonable foreseeability of harm, (2) proximity, (3) fair, just and reasonable to impose a duty."}},
+  {id:"application",letter:"A",label:"Application",sub:"Apply the law to your facts",color:"#7ab8a0",
+    desc:"The most important section. Take each element of the legal test and apply it to the specific facts. Don't restate facts — show how they satisfy or don't satisfy each element.",
+    tips:["Work through each element one by one","Use the facts — be specific, use names and events","Argue both sides where facts are ambiguous — then say which is stronger","Thin application = thin marks"],
+    eg:{lbl:"Example — Application",text:"First, foreseeability: leaving a running unlocked vehicle in a public area makes injury to road users reasonably foreseeable. Second, proximity: Lena was within the class of road users exposed to risk. Third, fairness: imposing a duty aligns with road safety policy."}},
+  {id:"conclusion",letter:"C",label:"Conclusion",sub:"Answer the issue directly",color:"#b07fd4",
+    desc:"Answer the Issue directly and decisively. Don't introduce new law or facts. State whether the legal test is satisfied and what the legal consequence is. Two to three sentences maximum.",
+    tips:["Answer the issue question you posed at the start","Be definitive — avoid 'it may be argued' at conclusion stage","State the legal consequence: liability established / no breach / defence succeeds","Keep it sharp — two or three sentences only"],
+    eg:{lbl:"Example — Conclusion",text:"Therefore, Marcus owed Lena a duty of care. All three elements are satisfied: harm was foreseeable, proximity is established through her status as a road user, and it is fair and reasonable to impose a duty."}}
+];
+const ILAC_SCENARIOS=[
+  {id:1,area:"Tort Law",diff:"Beginner",facts:"Aroha runs a small café. She mops the floor near the entrance but forgets to put out a wet floor sign. Tama, a regular customer, walks in, slips on the wet floor, and fractures his wrist. Tama had been to the café many times and knew the floor near the entrance often got wet on rainy days. It was raining that day.",hint:"Think about duty of care, breach, causation, and contributory negligence."},
+  {id:2,area:"Contract Law",diff:"Intermediate",facts:"Wiremu emails Hana offering to sell his car for $8,000 'if you accept by Friday noon.' On Thursday evening, Wiremu texts Hana saying he's changed his mind and is selling to someone else. On Friday at 9am, before seeing the text, Hana emails her acceptance. Wiremu refuses to complete the sale.",hint:"Think about offer, acceptance, revocation, and when communication takes effect."},
+  {id:3,area:"Criminal Law",diff:"Intermediate",facts:"James and Luke get into an argument. Luke throws the first punch. James, believing Luke is about to attack again, picks up a glass bottle and strikes Luke over the head, causing serious injury. Medical evidence shows Luke had stopped moving toward James when the bottle strike occurred.",hint:"Consider self-defence under s 48 of the Crimes Act 1961 — was the force used reasonable and necessary?"},
+  {id:4,area:"Employment Law",diff:"Advanced",facts:"Mere has worked as a senior account manager for five years with an unblemished record. Her employer suspects she shared confidential client data with a competitor. Mere denies it. The employer summarily dismisses her without holding a formal investigation or giving her a chance to respond.",hint:"Consider unjustified dismissal under the Employment Relations Act 2000 — both substantive and procedural justification."},
+  {id:5,area:"Family Law",diff:"Advanced",facts:"Tom and Sara have two children aged 7 and 9. After separation, Sara has day-to-day care. Tom applies to the Family Court for equal shared care. Sara objects, citing Tom's irregular night shifts and the disruption to schooling. Tom argues the children have a strong bond with him and he can adjust his schedule.",hint:"Apply the paramountcy principle and welfare checklist under the Care of Children Act 2004."},
+  {id:6,area:"Treaty / Constitutional",diff:"Advanced",facts:"The government passes legislation allowing mining on land Tūhoe consider taonga, without consulting the relevant iwi. The Crown argues it consulted the wider public through a standard select committee process. Tūhoe seek judicial review, arguing a failure of Treaty principles.",hint:"Consider Treaty principles of partnership, active protection, and good faith — and relevant cases on Crown consultation obligations."},
+];
+const QUIZ_QS=[
+  {area:"tort",q:"Which case established the modern 'neighbour principle' and the foundations of negligence?",opts:["Donoghue v Stevenson [1932] AC 562","Caparo Industries v Dickman [1990] 2 AC 605","South Pacific Manufacturing v NZ Security [1992]","Bolton v Stone [1951] AC 850"],ans:0,expl:"Donoghue v Stevenson established Lord Atkin's neighbour principle — you must take reasonable care to avoid acts or omissions which you can reasonably foresee would be likely to injure your neighbour."},
+  {area:"criminal",q:"Under the Crimes Act 1961, which section covers the defence of self-defence?",opts:["s 24","s 48","s 66","s 189"],ans:1,expl:"Section 48 of the Crimes Act 1961 provides that everyone is justified in using, in the defence of himself or another, such force as, in the circumstances as he believes them to be, it is reasonable to use."},
+  {area:"contract",q:"In NZ contract law, when does a postal acceptance become effective?",opts:["When the offeror reads it","When it is posted","When it arrives at the offeror's address","When the offeror acknowledges it"],ans:1,expl:"The postal rule holds that acceptance is effective when the letter is posted, not when received. This is an exception to the general rule that acceptance must be communicated to the offeror."},
+  {area:"family",q:"Under the Care of Children Act 2004, what is the first and paramount consideration in any parenting dispute?",opts:["The wishes of the parents","The welfare and best interests of the child","Maintaining the status quo","Equal shared care"],ans:1,expl:"Section 4 of the Care of Children Act 2004 establishes that the welfare and best interests of the child must be the first and paramount consideration in any decision affecting the child."},
+  {area:"treaty",q:"Which landmark NZ case recognised that the Crown could be liable in damages for breach of the NZBORA?",opts:["NZ Māori Council v Attorney-General [1987]","Baigent v The Crown [1994] 3 NZLR 667","Attorney-General v Taylor [2018]","Tūhoe Claims Settlement Act 2014"],ans:1,expl:"Baigent v The Crown [1994] 3 NZLR 667 held that an individual whose rights under the NZBORA have been infringed by the Crown is entitled to a remedy in damages."},
+  {area:"employment",q:"Under the Employment Relations Act 2000, what two elements must be satisfied for a dismissal to be justified?",opts:["Notice and written reasons","Substantive justification and procedural fairness","Performance review and final warning","Mutual agreement and redundancy payment"],ans:1,expl:"Section 103A ERA 2000 requires that a dismissal be both substantively justified (genuine reason) and procedurally fair (fair process including the right to respond)."},
+  {area:"tort",q:"Which NZ case confirmed the three-stage test for duty of care?",opts:["Rogers v TVNZ [2008] NZSC 91","South Pacific Manufacturing v NZ Security [1992] 2 NZLR 282","Invercargill City Council v Hamlin [1996]","Couch v Attorney-General [2010] NZSC 27"],ans:1,expl:"South Pacific Manufacturing [1992] 2 NZLR 282 confirmed that the three-stage test (foreseeability, proximity, fair/just/reasonable) applies in New Zealand."},
+  {area:"contract",q:"What is the legal effect of a counter-offer?",opts:["It extends the original offer","It is a form of acceptance with conditions","It terminates the original offer and creates a new one","It suspends the original offer temporarily"],ans:2,expl:"A counter-offer terminates the original offer and substitutes a new offer — Hyde v Wrench (1840). The original offeror becomes the offeree and may accept or reject the new terms."},
+  {area:"criminal",q:"What is the standard of proof required to convict in a criminal case in NZ?",opts:["Balance of probabilities","Beyond reasonable doubt","Clear and convincing evidence","Prima facie evidence"],ans:1,expl:"In criminal proceedings the prosecution must prove the defendant's guilt beyond reasonable doubt — the highest standard of proof in the NZ legal system."},
+  {area:"evidence",q:"Under the Evidence Act 2006, what is the default rule regarding hearsay evidence?",opts:["Hearsay is always admissible","Hearsay is inadmissible unless an exception applies","Hearsay is admissible if the judge allows it","Hearsay is only admissible in civil cases"],ans:1,expl:"Section 17 of the Evidence Act 2006 provides that hearsay evidence is not admissible unless it falls within an exception. Key exceptions: s 18 (trustworthy hearsay), s 19 (prior statements)."},
+  {area:"property",q:"What principle prevents a tenant from denying their landlord's title?",opts:["Nemo dat quod non habet","Estoppel by deed","Tenure estoppel","Indefeasibility of title"],ans:2,expl:"Tenure estoppel prevents a tenant from denying the landlord's title during the tenancy. The tenant, having accepted possession under the lease, is estopped from challenging the landlord's right to grant it."},
+  {area:"treaty",q:"What are the three main versions/texts of Te Tiriti o Waitangi?",opts:["English, Māori, and French versions","The Māori text (te reo), the English draft, and the Freeman copy","The Crown copy, the missionary copy, and the Māori copy","The 1840 text, the 1975 text, and the amended text"],ans:1,expl:"Te Tiriti has two main language versions — the Māori text (te reo Māori) and the English draft — which differ in key ways, particularly around sovereignty (kāwanatanga vs tino rangatiratanga). The Freeman copy is a later official English version."},
+];
+const FLASHCARDS=[
+  {area:"tort",front:"What are the three elements of the duty of care test?",back:"1. Foreseeable harm to the claimant\n2. Sufficient proximity between the parties\n3. Fair, just and reasonable to impose a duty\n\nCaparo Industries v Dickman [1990] (UK — persuasive); confirmed in NZ in South Pacific Manufacturing [1992]."},
+  {area:"criminal",front:"What are the two elements of every criminal offence?",back:"1. Actus reus — the guilty act (the physical element)\n2. Mens rea — the guilty mind (the mental element)\n\nBoth must be proven beyond reasonable doubt. Some strict liability offences require only actus reus."},
+  {area:"contract",front:"What are the four essential elements of a valid contract?",back:"1. Offer — a clear proposal\n2. Acceptance — unconditional agreement to the offer\n3. Consideration — something of value exchanged\n4. Intention to create legal relations\n\nSome also require capacity and legality."},
+  {area:"family",front:"What is the 'paramountcy principle' in NZ family law?",back:"The welfare and best interests of the child are the first and paramount consideration in any decision affecting the child.\n\nCare of Children Act 2004, s 4. Confirmed in Attorney-General v Prince [1998] 1 NZLR 262."},
+  {area:"treaty",front:"What is tino rangatiratanga?",back:"Māori concept of absolute sovereignty, chieftainship, or self-determination — used in Article 2 of Te Tiriti o Waitangi.\n\nThe Crown guaranteed Māori tino rangatiratanga over their lands, villages, and taonga. This differs from 'sovereignty' in the English draft."},
+  {area:"employment",front:"What is the 'reasonable employer' test in NZ employment law?",back:"Under s 103A ERA 2000, a dismissal is justified if the employer's actions were what a fair and reasonable employer could have done in all the circumstances at the time.\n\nObjective test — what would a reasonable employer have done, not what this employer thought was reasonable."},
+  {area:"evidence",front:"What is the hearsay rule?",back:"Hearsay is a statement made out of court offered as evidence of the truth of its contents.\n\nUnder the Evidence Act 2006, s 17, hearsay is generally inadmissible. Key exceptions: trustworthy hearsay (s 18) and prior statements of witnesses (s 35)."},
+  {area:"tort",front:"What is the 'but for' test in causation?",back:"But for the defendant's breach, would the plaintiff have suffered the loss?\n\nIf 'no' — the loss would not have occurred without the breach — causation is established.\n\nBarnett v Chelsea & Kensington Hospital [1969] 1 QB 428 (UK — persuasive)."},
+  {area:"contract",front:"What is promissory estoppel?",back:"Prevents a party from going back on a clear and unequivocal promise that the other party has relied upon to their detriment, even without consideration.\n\nCentral London Property Trust v High Trees House [1947] KB 130 (UK — persuasive). Applied in NZ courts as an equitable doctrine."},
+  {area:"property",front:"What does indefeasibility of title mean in NZ land law?",back:"Under the Land Transfer Act 2017, a registered proprietor holds an indefeasible title — their title cannot be challenged or overridden except for fraud or certain overriding interests.\n\nFrazer v Walker [1967] 1 AC 569 (PC) — confirmed indefeasibility applies even if the prior transaction was void."},
+  {area:"criminal",front:"What is the defence of necessity?",back:"Applies where a person commits a crime to avoid a greater harm:\n1. There was an imminent peril\n2. No reasonable legal alternative\n3. Harm caused was not disproportionate to harm avoided\n\nNarrowly recognised in NZ — not available for all offences."},
+  {area:"treaty",front:"What are the three Treaty principles recognised by the courts?",back:"1. Partnership — Crown and Māori acting together in good faith\n2. Active protection — Crown must actively protect Māori interests\n3. Consultation/participation — Māori must be consulted on decisions affecting them\n\nFirst articulated in NZ Māori Council v Attorney-General [1987] 1 NZLR 641."},
+];
+const GLOSSARY=[
+  {term:"Actus reus",area:"criminal",def:"The physical element of a crime — the guilty act or omission. Must be proven alongside mens rea to establish criminal liability."},
+  {term:"Mens rea",area:"criminal",def:"The mental element of a crime — the guilty mind. Refers to the defendant's intention, knowledge, recklessness, or negligence at the time of the act."},
+  {term:"Ratio decidendi",area:"general",def:"The legal reasoning or principle on which a court's decision is based. This is the binding part of a case that creates precedent for future courts."},
+  {term:"Obiter dicta",area:"general",def:"Remarks made by a judge 'by the way' — not essential to the decision. Obiter is not binding but may be persuasive, especially from senior courts."},
+  {term:"Stare decisis",area:"general",def:"The doctrine of precedent — courts should follow and apply the decisions of higher courts in their jurisdiction on the same legal point."},
+  {term:"Tino rangatiratanga",area:"treaty",def:"Māori concept of self-determination, sovereignty, or chieftainship. Used in Article 2 of Te Tiriti o Waitangi to guarantee Māori authority over their lands and taonga."},
+  {term:"Kāwanatanga",area:"treaty",def:"Transliteration of 'governorship'. Used in Article 1 of Te Tiriti. The Crown's claim to sovereignty under the English text is not mirrored by this term in te reo Māori."},
+  {term:"Paramountcy principle",area:"family",def:"Under the Care of Children Act 2004, s 4 — the welfare and best interests of the child are the first and paramount consideration in any proceedings affecting the child."},
+  {term:"Indefeasibility",area:"property",def:"The principle in NZ land law that a registered title under the Land Transfer Act 2017 cannot be challenged or defeated except for fraud or certain overriding interests."},
+  {term:"Duty of care",area:"tort",def:"A legal obligation to take reasonable care to avoid causing foreseeable harm to others. Established in Donoghue v Stevenson [1932] and applied in NZ via the three-stage test."},
+  {term:"Consideration",area:"contract",def:"Something of value (money, act, promise, forbearance) exchanged between contracting parties. A contract without consideration is generally unenforceable at common law."},
+  {term:"Offer and acceptance",area:"contract",def:"The two key elements of contract formation. An offer is a clear proposal; acceptance is unconditional agreement to the exact terms of the offer."},
+  {term:"Hearsay",area:"evidence",def:"A statement made out of court offered as evidence of the truth of its contents. Generally inadmissible under Evidence Act 2006, s 17, subject to exceptions."},
+  {term:"Judicial review",area:"general",def:"A court's power to review the lawfulness of decisions made by public bodies, tribunals, or the executive. NZ courts review for illegality, irrationality, and procedural impropriety."},
+  {term:"Unjustified dismissal",area:"employment",def:"Under the Employment Relations Act 2000, a dismissal that lacks substantive justification (a genuine reason) or procedural fairness (a fair process including the right to respond)."},
+  {term:"Contributory negligence",area:"tort",def:"Where the plaintiff's own fault contributed to their loss. Under the Contributory Negligence Act 1947, the court apportions loss between the parties based on their respective degrees of fault."},
+  {term:"Beyond reasonable doubt",area:"criminal",def:"The standard of proof in criminal proceedings. The prosecution must make the judge or jury sure of the defendant's guilt — the highest standard in NZ law."},
+  {term:"Balance of probabilities",area:"general",def:"The standard of proof in civil proceedings. The party bearing the burden must show it is more likely than not (more than 50%) that their version of events is correct."},
+  {term:"Nemo dat quod non habet",area:"property",def:"Latin: 'No one can give what they do not have.' A person cannot transfer better title to goods or land than they themselves possess."},
+  {term:"Estoppel",area:"general",def:"A principle preventing a party from going back on a representation or promise that another party has relied on to their detriment. Types include promissory, proprietary, and estoppel by deed."},
+];
+const INIT_CASES=[
+  {id:1,name:"Donoghue v Stevenson",cit:"[1932] AC 562",jur:"uk",area:"tort",principle:"Established the modern duty of care — the neighbour principle. A manufacturer owes a duty of care to the ultimate consumer of their product.",type:"Landmark"},
+  {id:2,name:"Baigent v The Crown",cit:"[1994] 3 NZLR 667",jur:"nz",area:"treaty",principle:"Recognised that the Crown can be liable in damages for breach of Treaty of Waitangi principles under the NZBORA.",type:"Constitutional"},
+  {id:3,name:"South Pacific Manufacturing v NZ Security Consultants",cit:"[1992] 2 NZLR 282",jur:"nz",area:"tort",principle:"Confirmed the three-stage test for duty of care in New Zealand — foreseeability, proximity, and fair/just/reasonable.",type:"Leading"},
+  {id:4,name:"Attorney-General v Prince",cit:"[1998] 1 NZLR 262",jur:"nz",area:"family",principle:"Confirmed the paramountcy principle — the welfare and best interests of the child are the first and paramount consideration.",type:"Leading"},
+  {id:5,name:"NZ Māori Council v Attorney-General",cit:"[1987] 1 NZLR 641",jur:"nz",area:"treaty",principle:"Articulated the principles of Te Tiriti — partnership, active protection, and consultation — as binding on the Crown.",type:"Constitutional"},
+  {id:6,name:"Taylor v New Zealand Poultry Board",cit:"[1984] 1 NZLR 394",jur:"nz",area:"employment",principle:"Established natural justice requirements in employment decisions — the right to be heard before an adverse decision.",type:"Leading"},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const S={
+  tab:"research",
+  apiKey: localStorage.getItem("lexnz-apikey")||"",
+  selArea:null, selType:"cases", selJuris:["nz"],
+  query:"", history:[], bookmarks: JSON.parse(localStorage.getItem("lexnz-bookmarks")||"[]"),
+  peeal:{point:"",explanation:"",evidence:"",application:"",link:""},
+  peealArea:"", peealResult:null,
+  ilacMode:"learn", ilacOpen:"issue",
+  ilacBuild:{issue:"",law:"",application:"",conclusion:""},
+  ilacBuildArea:"", ilacBuildResult:null,
+  ilacScenIdx:0,
+  ilacPract:{issue:"",law:"",application:"",conclusion:""},
+  ilacPractResult:null,
+  quizMode:"mcq", quizFilter:"all",
+  quizQs:[], quizIdx:0, quizSel:null, quizScore:0, quizDone:false,
+  fcFilter:"all", fcIdx:0, fcFlipped:false, fcSeen:new Set(),
+  cases: JSON.parse(localStorage.getItem("lexnz-cases")||JSON.stringify(INIT_CASES)),
+  caseSearch:"",
+  showAddCase:false,
+  newCase:{name:"",cit:"",jur:"nz",area:"tort",principle:"",type:"Leading"},
+  glossSearch:"", glossFilter:"all",
+  loading:false, saveShow:false,
+};
+
+// shuffle quiz on load
+S.quizQs=[...QUIZ_QS].sort(()=>Math.random()-.5);
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function h(tag,cls,html,attrs){
+  const a=attrs?Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(" "):"";
+  return `<${tag}${cls?` class="${cls}"`:""}${a?` ${a}`:""}>` +(html||"")+`</${tag}>`;
+}
+function fmt(t){return (t||"").replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")}
+function save(key,val){
+  try{localStorage.setItem(key,typeof val==="string"?val:JSON.stringify(val));}catch(e){}
+  S.saveShow=true; render(); setTimeout(()=>{S.saveShow=false;render();},2000);
+}
+function exportPDF(content,title){
+  const w=window.open("","_blank");
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><style>body{font-family:Georgia,serif;max-width:750px;margin:40px auto;color:#111;line-height:1.7;font-size:14px}h1{font-size:1.5rem;border-bottom:2px solid #c8a96e;padding-bottom:.5rem;margin-bottom:1rem}.meta{color:#888;font-size:.8rem;margin-bottom:1.5rem}strong{color:#8b6a2a}.footer{margin-top:3rem;border-top:1px solid #ddd;padding-top:1rem;font-size:.75rem;color:#aaa}</style></head><body><h1>${title}</h1><div class="meta">Generated by LexNZ · ${new Date().toLocaleDateString("en-NZ",{dateStyle:"long"})}</div><div>${content.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/\n/g,"<br>")}</div><div class="footer">LexNZ — NZ Legal Study Tool · For educational use only. Not legal advice.</div></body></html>`);
+  w.document.close(); w.print();
+}
+async function callClaude(messages,system,maxTokens=1000){
+  if(!S.apiKey) return "⚠️ Please enter your Anthropic API key above to use AI features.";
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:maxTokens,system,messages})
+    });
+    const d=await r.json();
+    if(d.error) return "Error: "+d.error.message;
+    return d.content?.map(b=>b.text||"").join("")||"No response.";
+  }catch(e){return "Connection error. Check your internet connection and API key.";}
+}
+function buildSys(){
+  const aL=LAW_AREAS.find(a=>a.id===S.selArea)?.label||"General NZ Law";
+  const tL=QUERY_TYPES.find(t=>t.id===S.selType)?.label||"Legal Research";
+  const perJuris=JURISDICTIONS.filter(j=>S.selJuris.includes(j.id)&&j.type==="persuasive");
+  const jurisInstr=perJuris.length
+    ?`PRIMARY: NZ (binding). PERSUASIVE: ${perJuris.map(j=>j.label).join(", ")}. Label persuasive cases clearly. Explain their relevance to NZ law.`
+    :"NZ only — cite NZ cases and statutes.";
+  return `You are LexNZ, an expert NZ legal research assistant for NZ law students. Area: ${aL}. Task: ${tL}. ${jurisInstr} Always: cite NZ cases with full citations, reference NZ legislation, use PEEAL/IRAC for arguments, **bold** case names and legislation, be precise and educational.`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+const TABS=[
+  {id:"research",icon:"🔍",label:"Research"},
+  {id:"peeal",icon:"📝",label:"PEEAL"},
+  {id:"ilac",icon:"🎓",label:"ILAC"},
+  {id:"quiz",icon:"🧠",label:"Quiz"},
+  {id:"library",icon:"📚",label:"Cases"},
+  {id:"glossary",icon:"📖",label:"Glossary"},
+  {id:"bookmarks",icon:"🔖",label:"Bookmarks"},
+];
+
+function render(){
+  document.getElementById("navTabs").innerHTML=TABS.map(t=>{
+    const cnt=t.id==="library"?S.cases.length:t.id==="bookmarks"?S.bookmarks.length:0;
+    return `<button class="nav-tab${S.tab===t.id?" active":""}" onclick="setTab('${t.id}')">${t.icon} ${t.label}${cnt>0?`<span class="badge">${cnt}</span>`:""}</button>`;
+  }).join("");
+  document.getElementById("mainArea").innerHTML=renderTab();
+  bindEvents();
+}
+
+function renderTab(){
+  switch(S.tab){
+    case"research": return renderResearch();
+    case"peeal": return renderPeeal();
+    case"ilac": return renderIlac();
+    case"quiz": return renderQuiz();
+    case"library": return renderLibrary();
+    case"glossary": return renderGlossary();
+    case"bookmarks": return renderBookmarks();
+  }
+  return "";
+}
+
+// ── RESEARCH ──────────────────────────────────────────────────────────────────
+function renderResearch(){
+  const activeArea=LAW_AREAS.find(a=>a.id===S.selArea);
+  const activeType=QUERY_TYPES.find(t=>t.id===S.selType);
+  const perJuris=JURISDICTIONS.filter(j=>S.selJuris.includes(j.id)&&j.type==="persuasive");
+  const ph=S.selType==="cases"?"e.g. What are the leading NZ cases on adverse possession?":
+    S.selType==="arguments"?"e.g. Build an argument that the defendant breached their duty of care...":
+    S.selType==="counter"?"e.g. Counter-arguments to a claim of constructive dismissal...":
+    S.selType==="rules"?"e.g. What does the Crimes Act 1961 say about assault?":
+    "e.g. Explain the principle of promissory estoppel in plain language...";
+
+  let html=renderApiBar();
+  html+=`<div class="sec"><span class="lbl">Area of Law</span><div class="grid4">${LAW_AREAS.map(a=>`<button class="area-btn${S.selArea===a.id?" on":""}" style="--ac:${a.color}" onclick="toggleArea('${a.id}')">${a.icon} ${a.label}</button>`).join("")}</div></div>`;
+  html+=`<div class="sec"><span class="lbl">Query Type</span><div class="type-strip">${QUERY_TYPES.map(t=>`<button class="chip${S.selType===t.id?" on":""}" onclick="S.selType='${t.id}';render()">${t.icon} ${t.label}</button>`).join("")}</div></div>`;
+  html+=`<div class="sec"><span class="lbl">Jurisdictions</span><div class="grid3">${JURISDICTIONS.map(j=>`<button class="juris-btn${j.type==="binding"?" binding":""}${S.selJuris.includes(j.id)?" on":""}" style="--jc:${j.color}" onclick="toggleJuris('${j.id}')">${j.id==="nz"?'<span class="always-on">Always On</span>':""}<div class="j-top"><span>${j.flag}</span><span class="j-name">${j.label}</span></div><div class="j-note">${j.note}</div><div class="j-courts">${j.courts}</div></button>`).join("")}</div>${perJuris.length>0?`<div class="juris-info">⚖️ Always anchor in NZ law first, then draw on ${perJuris.map(j=>j.label).join(", ")} as persuasive authority.</div>`:""}</div>`;
+  html+=`<div class="sec"><span class="lbl">Your Question</span><div class="qbox"><textarea class="qi" id="queryInput" placeholder="${ph}" rows="4">${S.query}</textarea><div class="qfoot"><span class="qmeta">${activeArea?activeArea.label:"All Areas"} · ${activeType?.label} · Ctrl+Enter to submit</span><button class="btn-gold" onclick="doResearch()" ${S.loading?"disabled":""}>⚖️ ${S.loading?"Researching...":"Research"}</button></div></div></div>`;
+
+  if(S.loading) html+=`<div class="res-panel"><div class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div>Researching NZ law...</div></div>`;
+  else if(S.history.length===0) html+=`<div class="empty"><div class="empty-icon">⚖️</div><div class="empty-text">Select an area and ask your first question</div></div>`;
+  else{
+    html+=`<div class="row"><span class="lbl" style="margin:0">Results</span><button class="btn-ghost" onclick="S.history=[];render()">Clear</button></div>`;
+    html+=S.history.map((item,i)=>{
+      const bm=S.bookmarks.find(b=>b.id===item.id);
+      return `<div class="res-panel"><div class="res-hdr"><div style="flex:1"><div class="res-tag">${item.type?.icon||""} ${item.type?.label||"Research"}</div><div class="res-q">${item.query}</div></div><div style="display:flex;align-items:center;gap:.35rem;flex-shrink:0"><div style="text-align:right"><div class="res-area">${item.area?.label||"General NZ Law"}</div><div style="display:flex;gap:.1rem;justify-content:flex-end;margin-top:.12rem">${(item.jurisdictions||[]).map(j=>`<span title="${j.label}" style="font-size:.8rem">${j.flag}</span>`).join("")}</div></div><button class="btn-icon${bm?" on":""}" onclick="toggleBm(${i})" title="Bookmark">${bm?"🔖":"🏷️"}</button><button class="btn-sm" onclick="exportPDF('Q: ${item.query.replace(/'/g,"\\'")}\\n\\n${item.response.replace(/'/g,"\\'").replace(/\n/g,"\\n")}','LexNZ — ${(item.type?.label||"Research").replace(/'/g,"\\'")}')">PDF</button></div></div><div class="res-body">${fmt(item.response)}</div></div>`;
+    }).join("");
+  }
+  return html;
+}
+
+// ── PEEAL ─────────────────────────────────────────────────────────────────────
+function renderPeeal(){
+  let html=renderApiBar();
+  html+=`<div class="row"><div><span class="lbl" style="margin-bottom:.12rem;display:block">PEEAL Argument Builder</span><span style="font-size:.82rem;color:rgba(232,224,208,.42)">Build your argument — AI will review, enhance, and suggest NZ citations.</span></div><button class="btn-ghost" onclick="S.peeal={point:'',explanation:'',evidence:'',application:'',link:''};S.peealResult=null;render()">Clear</button></div>`;
+  html+=`<div style="margin-bottom:.85rem"><label class="flabel">Area of Law</label><select class="fsel" style="max-width:260px" onchange="S.peealArea=this.value"><option value="">General NZ Law</option>${LAW_AREAS.map(a=>`<option value="${a.label}"${S.peealArea===a.label?" selected":""}>${a.label}</option>`).join("")}</select></div>`;
+  html+=PEEAL_FIELDS.map(f=>`<div class="ff" style="--fc:#c8a96e"><div class="ff-hdr"><span class="ff-lbl">${f.label}</span><span class="ff-hint">${f.hint}</span></div><textarea placeholder="${f.ph}" onchange="S.peeal['${f.id}']=this.value" oninput="S.peeal['${f.id}']=this.value">${S.peeal[f.id]||""}</textarea></div>`).join("");
+  html+=`<div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.3rem"><button class="btn-gold" onclick="doPeeal()" ${S.loading?"disabled":""}>⚖️ ${S.loading?"Reviewing...":"Review & Enhance"}</button><span style="font-size:.7rem;color:rgba(232,224,208,.26);font-family:'DM Mono',monospace">Fill 3+ fields</span></div>`;
+  if(S.loading) html+=`<div class="loading" style="padding:1rem 0"><div class="dot"></div><div class="dot"></div><div class="dot"></div>Analysing argument...</div>`;
+  if(S.peealResult&&!S.loading){
+    html+=`<div class="ai-box"><div class="ai-title">AI Review &amp; Enhancement</div><div class="ai-body">${fmt(S.peealResult)}</div><div style="margin-top:.8rem"><button class="btn-sm" onclick="exportPDF('PEEAL\\nP: ${(S.peeal.point||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nE: ${(S.peeal.explanation||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nE: ${(S.peeal.evidence||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nA: ${(S.peeal.application||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nL: ${(S.peeal.link||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\n\\nAI REVIEW:\\n${(S.peealResult||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}','LexNZ — PEEAL Argument')">Export PDF</button></div></div>`;
+  }
+  return html;
+}
+
+// ── ILAC ──────────────────────────────────────────────────────────────────────
+function renderIlac(){
+  let html=`<div class="sec"><span class="lbl" style="margin-bottom:.12rem;display:block">ILAC Learning Tool</span><div style="font-size:.82rem;color:rgba(232,224,208,.42);margin-bottom:1rem">Issue · Law · Application · Conclusion</div><div class="type-strip">${[{id:"learn",l:"📖 Learn"},{id:"build",l:"✍️ Build"},{id:"practice",l:"🎯 Practice"}].map(m=>`<button class="chip blue${S.ilacMode===m.id?" on":""}" onclick="S.ilacMode='${m.id}';render()">${m.l}</button>`).join("")}</div></div>`;
+
+  if(S.ilacMode==="learn"){
+    html+=`<div class="ilac-acc">${ILAC_LEARN.map(s=>`<div class="ilac-card${S.ilacOpen===s.id?" open":""}" style="--sc:${s.color}" onclick="S.ilacOpen=S.ilacOpen==='${s.id}'?null:'${s.id}';render()"><div class="ilac-hdr"><div class="ilac-letter">${s.letter}</div><div><div class="ilac-title">${s.label}</div><div class="ilac-sub">${s.sub}</div></div><div class="ilac-chev">▼</div></div><div class="ilac-body"><div class="ilac-desc">${s.desc}</div><div class="ilac-tips">${s.tips.map(t=>`<div class="ilac-tip"><div class="tip-dot"></div><span>${t}</span></div>`).join("")}</div><div class="ilac-eg"><div class="ilac-eg-lbl">${s.eg.lbl}</div>${s.eg.text}</div></div></div>`).join("")}</div>`;
+    html+=`<div style="margin-top:1.2rem;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.95rem 1.15rem"><span class="lbl" style="margin-bottom:.42rem;display:block">ILAC vs PEEAL — when to use which</span><div style="font-size:.82rem;line-height:1.7;color:rgba(232,224,208,.57)"><strong style="color:#8fa8d0">ILAC</strong> — problem-based questions with a fact scenario. Use when advising a party on their legal position. Most exam problems. <strong style="color:#c8a96e">PEEAL</strong> — essay and analytical questions where you're making a structured argument about the law. Knowing when to switch is the mark of a strong student.</div></div>`;
+  }
+
+  if(S.ilacMode==="build"){
+    html+=renderApiBar();
+    html+=`<div class="row" style="margin-bottom:.8rem"><span style="font-size:.82rem;color:rgba(232,224,208,.4)">Write your ILAC — AI will review and suggest NZ citations.</span><button class="btn-ghost" onclick="S.ilacBuild={issue:'',law:'',application:'',conclusion:''};S.ilacBuildResult=null;render()">Clear</button></div>`;
+    html+=`<div style="margin-bottom:.8rem"><label class="flabel">Area of Law</label><select class="fsel" style="max-width:260px" onchange="S.ilacBuildArea=this.value"><option value="">General NZ Law</option>${LAW_AREAS.map(a=>`<option value="${a.label}"${S.ilacBuildArea===a.label?" selected":""}>${a.label}</option>`).join("")}</select></div>`;
+    html+=ILAC_FIELDS.map(f=>`<div class="ff" style="--fc:${f.color}"><div class="ff-hdr"><span class="ff-lbl">${f.label}</span><span class="ff-hint">${f.hint}</span></div><textarea placeholder="${f.ph}" onchange="S.ilacBuild['${f.id}']=this.value" oninput="S.ilacBuild['${f.id}']=this.value">${S.ilacBuild[f.id]||""}</textarea></div>`).join("");
+    html+=`<div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.3rem"><button class="btn-gold" onclick="doIlacBuild()" ${S.loading?"disabled":""}>⚖️ ${S.loading?"Reviewing...":"Review & Enhance"}</button><span style="font-size:.7rem;color:rgba(232,224,208,.26);font-family:'DM Mono',monospace">Fill 2+ sections</span></div>`;
+    if(S.loading) html+=`<div class="loading" style="padding:1rem 0"><div class="dot"></div><div class="dot"></div><div class="dot"></div>Analysing ILAC...</div>`;
+    if(S.ilacBuildResult&&!S.loading) html+=`<div class="ai-box"><div class="ai-title">AI Review &amp; Enhancement</div><div class="ai-body">${fmt(S.ilacBuildResult)}</div><div style="margin-top:.8rem"><button class="btn-sm" onclick="exportPDF('ILAC\\nI: ${(S.ilacBuild.issue||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nL: ${(S.ilacBuild.law||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nA: ${(S.ilacBuild.application||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nC: ${(S.ilacBuild.conclusion||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\n\\nAI REVIEW:\\n${(S.ilacBuildResult||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}','LexNZ — ILAC Analysis')">Export PDF</button></div></div>`;
+  }
+
+  if(S.ilacMode==="practice"){
+    html+=renderApiBar();
+    const sc=ILAC_SCENARIOS[S.ilacScenIdx];
+    html+=`<div class="row" style="margin-bottom:.8rem"><span style="font-size:.82rem;color:rgba(232,224,208,.4)">Read the scenario, apply ILAC, get AI feedback and a model answer.</span><div style="display:flex;gap:.42rem;align-items:center"><span style="font-family:'DM Mono',monospace;font-size:.57rem;color:rgba(232,224,208,.27)">${S.ilacScenIdx+1}/${ILAC_SCENARIOS.length}</span><button class="add-toggle" onclick="nextScenario()">Next →</button></div></div>`;
+    html+=`<div class="scenario-box"><div class="scen-lbl">Scenario ${S.ilacScenIdx+1} · ${sc.area} · ${sc.diff}</div><div class="scen-text">${sc.facts}</div><div class="scen-hint">💡 ${sc.hint}</div></div>`;
+    html+=ILAC_FIELDS.map(f=>`<div class="ff" style="--fc:${f.color}"><div class="ff-hdr"><span class="ff-lbl">${f.label}</span><span class="ff-hint">${f.hint}</span></div><textarea placeholder="${f.ph}" onchange="S.ilacPract['${f.id}']=this.value" oninput="S.ilacPract['${f.id}']=this.value">${S.ilacPract[f.id]||""}</textarea></div>`).join("");
+    html+=`<div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.3rem"><button class="btn-gold" onclick="doIlacPractice()" ${S.loading?"disabled":""}>⚖️ ${S.loading?"Marking...":"Submit for Feedback"}</button><button class="btn-ghost" onclick="S.ilacPract={issue:'',law:'',application:'',conclusion:''};S.ilacPractResult=null;render()">Clear</button></div>`;
+    if(S.loading) html+=`<div class="loading" style="padding:1rem 0"><div class="dot"></div><div class="dot"></div><div class="dot"></div>Marking your answer...</div>`;
+    if(S.ilacPractResult&&!S.loading) html+=`<div class="ai-box"><div class="ai-title">Feedback &amp; Model Answer</div><div class="ai-body">${fmt(S.ilacPractResult)}</div><div style="display:flex;gap:.42rem;margin-top:.8rem;flex-wrap:wrap"><button class="btn-sm" onclick="exportPDF('ILAC PRACTICE\\n\\nSCENARIO:\\n${sc.facts.replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\n\\nMY ANSWER:\\nI: ${(S.ilacPract.issue||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nL: ${(S.ilacPract.law||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nA: ${(S.ilacPract.application||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\nC: ${(S.ilacPract.conclusion||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\n\\nFEEDBACK:\\n${(S.ilacPractResult||"").replace(/'/g,"\\'").replace(/\n/g,"\\n")}','LexNZ — ILAC ${sc.area.replace(/'/g,"\\'")}')">Export PDF</button><button class="add-toggle" onclick="nextScenario()">Next Scenario →</button></div></div>`;
+  }
+  return html;
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+function renderQuiz(){
+  let html=`<div class="sec"><span class="lbl" style="margin-bottom:.12rem;display:block">Quiz Mode</span><div style="font-size:.82rem;color:rgba(232,224,208,.42);margin-bottom:1rem">Test your knowledge of NZ law — cases, statutes, principles.</div><div class="type-strip">${[{id:"mcq",l:"📋 Multiple Choice"},{id:"flashcard",l:"🃏 Flashcards"}].map(m=>`<button class="chip blue${S.quizMode===m.id?" on":""}" onclick="S.quizMode='${m.id}';render()">${m.l}</button>`).join("")}</div></div>`;
+
+  if(S.quizMode==="mcq"){
+    const allAreas=["all",...new Set(QUIZ_QS.map(q=>q.area))];
+    html+=`<div class="row" style="margin-bottom:.9rem"><div class="type-strip">${allAreas.map(a=>`<button class="chip${S.quizFilter===a?" on":""}" onclick="setQuizFilter('${a}')">${a==="all"?"All Areas":LAW_AREAS.find(x=>x.id===a)?.label||a}</button>`).join("")}</div><button class="btn-ghost" onclick="resetQuiz()">Shuffle</button></div>`;
+
+    if(!S.quizDone&&S.quizQs[S.quizIdx]){
+      const q=S.quizQs[S.quizIdx];
+      const pct=Math.round((S.quizIdx/S.quizQs.length)*100);
+      html+=`<div class="quiz-prog"><div><div class="quiz-score">${S.quizScore}/${S.quizIdx}</div><div class="quiz-score-lbl">Score</div></div><div class="quiz-bar-wrap"><div class="quiz-bar" style="width:${pct}%"></div></div><span style="font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(232,224,208,.28)">${S.quizIdx+1}/${S.quizQs.length}</span></div>`;
+      html+=`<div class="quiz-qbox"><div class="quiz-area">${LAW_AREAS.find(a=>a.id===q.area)?.label||q.area}</div><div class="quiz-q">${q.q}</div><div class="quiz-opts">${q.opts.map((o,i)=>{let cls="quiz-opt";if(S.quizSel!==null){if(i===q.ans)cls+=" correct";else if(i===S.quizSel&&i!==q.ans)cls+=" wrong";}return `<button class="${cls}"${S.quizSel!==null?" disabled":""} onclick="answerQuiz(${i})"><span class="opt-letter">${["A","B","C","D"][i]}</span>${o}</button>`;}).join("")}</div>${S.quizSel!==null?`<div class="quiz-expl">${fmt(q.expl)}</div>`:""}</div>`;
+      if(S.quizSel!==null) html+=`<button class="btn-gold" style="margin-top:.8rem" onclick="nextQuiz()">${S.quizIdx+1>=S.quizQs.length?"See Results":"Next Question →"}</button>`;
+    } else if(S.quizDone){
+      const pct2=Math.round((S.quizScore/S.quizQs.length)*100);
+      const msg=pct2===100?"Perfect score! 🎉":pct2>=80?"Excellent work! 💪":pct2>=60?"Good effort — keep studying!":"Keep going — review the cases and try again!";
+      html+=`<div class="quiz-done"><div class="final-score">${S.quizScore}/${S.quizQs.length}</div><div class="final-lbl">${msg}</div><button class="btn-gold" onclick="resetQuiz()">Try Again</button></div>`;
+    }
+  }
+
+  if(S.quizMode==="flashcard"){
+    const fcCards=S.fcFilter==="all"?FLASHCARDS:FLASHCARDS.filter(c=>c.area===S.fcFilter);
+    const idx=Math.min(S.fcIdx,fcCards.length-1);
+    const card=fcCards[idx];
+    const allAreas2=["all",...new Set(FLASHCARDS.map(c=>c.area))];
+    html+=`<div class="row" style="margin-bottom:.9rem"><div class="type-strip">${allAreas2.map(a=>`<button class="chip${S.fcFilter===a?" on":""}" onclick="setFcFilter('${a}')">${a==="all"?"All Areas":LAW_AREAS.find(x=>x.id===a)?.label||a}</button>`).join("")}</div><span style="font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(232,224,208,.28)">${S.fcSeen.size}/${fcCards.length} seen</span></div>`;
+    html+=`<div class="fc-wrap" onclick="S.fcFlipped=!S.fcFlipped;render()"><div class="fc${S.fcFlipped?" flipped":""}"><div class="fc-face fc-front"><div class="fc-lbl">Question — tap to reveal</div><div class="fc-text">${card?.front||""}</div><div class="fc-hint">${LAW_AREAS.find(a=>a.id===card?.area)?.icon||""} ${LAW_AREAS.find(a=>a.id===card?.area)?.label||""}</div></div><div class="fc-face fc-back"><div class="fc-lbl">Answer</div><div class="fc-text">${card?.back||""}</div></div></div></div>`;
+    html+=`<div class="fc-nav"><button class="btn-ghost" onclick="prevFc()">← Prev</button><div class="fc-dots">${fcCards.map((_,i)=>`<button class="fc-dot${i===idx?" active":""}${S.fcSeen.has(i)&&i!==idx?" seen":""}" onclick="goFc(${i})"></button>`).join("")}</div><button class="btn-ghost" onclick="nextFc()">Next →</button></div><div class="fc-count">${idx+1} / ${fcCards.length}</div>`;
+  }
+  return html;
+}
+
+// ── LIBRARY ───────────────────────────────────────────────────────────────────
+function renderLibrary(){
+  const filtered=S.cases.filter(c=>!S.caseSearch||c.name.toLowerCase().includes(S.caseSearch.toLowerCase())||(c.principle||"").toLowerCase().includes(S.caseSearch.toLowerCase())||c.area.toLowerCase().includes(S.caseSearch.toLowerCase()));
+  let html=`<div class="row"><div><span class="lbl" style="margin-bottom:.12rem;display:block">Case Library</span><span style="font-size:.82rem;color:rgba(232,224,208,.42)">Key NZ and persuasive precedents. Add your own as you study.</span></div><div style="display:flex;gap:.42rem;align-items:center;flex-wrap:wrap"><span class="save-ok${S.saveShow?" show":""}">✓ Saved</span><input class="search-input" placeholder="Search cases..." value="${S.caseSearch}" oninput="S.caseSearch=this.value;render()"><button class="add-toggle" onclick="S.showAddCase=!S.showAddCase;render()">${S.showAddCase?"Cancel":"+ Add Case"}</button></div></div>`;
+  if(S.showAddCase){
+    const nc=S.newCase;
+    html+=`<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1.05rem;margin:.8rem 0 1.1rem;display:flex;flex-direction:column;gap:.65rem"><span class="lbl" style="margin:0">Add New Case</span><div class="frow"><div><label class="flabel">Case Name *</label><input class="finput" placeholder="e.g. Smith v Jones" value="${nc.name}" oninput="S.newCase.name=this.value"></div><div><label class="flabel">Citation *</label><input class="finput" placeholder="e.g. [2020] NZSC 12" value="${nc.cit}" oninput="S.newCase.cit=this.value"></div></div><div class="frow"><div><label class="flabel">Jurisdiction</label><select class="fsel" onchange="S.newCase.jur=this.value">${JURISDICTIONS.map(j=>`<option value="${j.id}"${nc.jur===j.id?" selected":""}>${j.flag} ${j.label}</option>`).join("")}</select></div><div><label class="flabel">Area of Law</label><select class="fsel" onchange="S.newCase.area=this.value">${LAW_AREAS.map(a=>`<option value="${a.id}"${nc.area===a.id?" selected":""}>${a.label}</option>`).join("")}</select></div></div><div><label class="flabel">Key Principle</label><input class="finput" placeholder="What did this case establish?" value="${nc.principle||""}" oninput="S.newCase.principle=this.value"></div><button class="btn-gold" style="align-self:flex-start" onclick="addCase()" ${!nc.name||!nc.cit?"disabled":""}>Save Case</button></div>`;
+  }
+  html+=`<div class="grid-auto" style="margin-top:.8rem">${filtered.map((c,i)=>{const juris=JURISDICTIONS.find(j=>j.id===c.jur);const area=LAW_AREAS.find(a=>a.id===c.area);return `<div class="case-card"><div class="case-name">${c.name}</div><div class="case-cit">${c.cit} ${juris?.flag||""}</div><div class="case-area">${area?.label||c.area} · ${juris?.label||c.jur}</div>${c.principle?`<div class="case-principle">${c.principle}</div>`:""}<div class="case-foot"><span class="case-tag-pill">${c.type||"Case"}</span><button class="btn-icon" onclick="deleteCase(${c.id})" title="Delete">🗑️</button></div></div>`;}).join("")}${filtered.length===0?`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📚</div><div class="empty-text">No cases match</div></div>`:""}</div>`;
+  return html;
+}
+
+// ── GLOSSARY ──────────────────────────────────────────────────────────────────
+function renderGlossary(){
+  const areas=["all",...new Set(GLOSSARY.map(g=>g.area))];
+  const filtered=GLOSSARY.filter(g=>(S.glossFilter==="all"||g.area===S.glossFilter)&&(!S.glossSearch||g.term.toLowerCase().includes(S.glossSearch.toLowerCase())||g.def.toLowerCase().includes(S.glossSearch.toLowerCase())));
+  let html=`<div class="row"><div><span class="lbl" style="margin-bottom:.12rem;display:block">Legal Glossary</span><span style="font-size:.82rem;color:rgba(232,224,208,.42)">Plain English definitions of key legal terms and maxims.</span></div><input class="search-input" placeholder="Search terms..." value="${S.glossSearch}" oninput="S.glossSearch=this.value;render()"></div>`;
+  html+=`<div class="type-strip" style="margin:.75rem 0">${areas.map(a=>`<button class="chip${S.glossFilter===a?" on":""}" onclick="S.glossFilter='${a}';render()">${a==="all"?"All":a==="general"?"General":LAW_AREAS.find(x=>x.id===a)?.label||a}</button>`).join("")}</div>`;
+  html+=`<div class="grid-auto">${filtered.map(g=>`<div class="gloss-card"><div class="gloss-term">${g.term}</div><div class="gloss-area">${g.area==="general"?"General Law":LAW_AREAS.find(a=>a.id===g.area)?.label||g.area}</div><div class="gloss-def">${g.def}</div></div>`).join("")}${filtered.length===0?`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📖</div><div class="empty-text">No terms match</div></div>`:""}</div>`;
+  return html;
+}
+
+// ── BOOKMARKS ─────────────────────────────────────────────────────────────────
+function renderBookmarks(){
+  let html=`<div class="row"><div><span class="lbl" style="margin-bottom:.12rem;display:block">Bookmarked Research</span><span style="font-size:.82rem;color:rgba(232,224,208,.42)">Saved from your research sessions.</span></div><div style="display:flex;gap:.42rem;align-items:center"><span class="save-ok${S.saveShow?" show":""}">✓ Saved</span>${S.bookmarks.length>0?`<button class="btn-ghost" onclick="S.bookmarks=[];save('lexnz-bookmarks',S.bookmarks);render()">Clear All</button>`:""}</div></div>`;
+  if(S.bookmarks.length===0) html+=`<div class="empty"><div class="empty-icon">🔖</div><div class="empty-text">Bookmark results using the 🏷️ icon in Research</div></div>`;
+  html+=S.bookmarks.map((item,i)=>`<div class="bm-card"><div class="bm-hdr"><div style="flex:1"><div class="bm-meta">${item.type?.icon||""} ${item.type?.label||""} · ${item.area?.label||"General NZ Law"} · ${(item.jurisdictions||[]).map(j=>j.flag).join(" ")}</div><div class="bm-q">${item.query}</div></div><div style="display:flex;gap:.32rem"><button class="btn-sm" onclick="exportPDF('Q: ${item.query.replace(/'/g,"\\'").replace(/\n/g,"\\n")}\\n\\n${item.response.replace(/'/g,"\\'").replace(/\n/g,"\\n")}','LexNZ — ${(item.type?.label||"Research").replace(/'/g,"\\'")}')">PDF</button><button class="btn-icon" onclick="removeBm(${i})" title="Remove">✕</button></div></div><div class="bm-body">${fmt(item.response)}</div></div>`).join("");
+  return html;
+}
+
+// ── API KEY BAR ───────────────────────────────────────────────────────────────
+function renderApiBar(){
+  return `<div class="api-key-bar"><label>Anthropic API Key</label><input type="password" placeholder="sk-ant-..." value="${S.apiKey}" oninput="S.apiKey=this.value;localStorage.setItem('lexnz-apikey',this.value)" autocomplete="off"><div class="api-key-note">Required for AI features. Get your key at console.anthropic.com<br>Quiz, Flashcards, Glossary &amp; Case Library work offline without a key.</div></div>`;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function setTab(t){S.tab=t;render();}
+function toggleArea(id){S.selArea=S.selArea===id?null:id;render();}
+function toggleJuris(id){if(id==="nz")return;S.selJuris=S.selJuris.includes(id)?S.selJuris.filter(x=>x!==id):[...S.selJuris,id];render();}
+function toggleBm(i){const item=S.history[i];const exists=S.bookmarks.find(b=>b.id===item.id);S.bookmarks=exists?S.bookmarks.filter(b=>b.id!==item.id):[item,...S.bookmarks];save("lexnz-bookmarks",S.bookmarks);}
+function removeBm(i){S.bookmarks.splice(i,1);save("lexnz-bookmarks",S.bookmarks);}
+function addCase(){if(!S.newCase.name||!S.newCase.cit)return;const nc={...S.newCase,id:Date.now()};S.cases=[nc,...S.cases];S.newCase={name:"",cit:"",jur:"nz",area:"tort",principle:"",type:"Leading"};S.showAddCase=false;save("lexnz-cases",S.cases);}
+function deleteCase(id){S.cases=S.cases.filter(c=>c.id!==id);save("lexnz-cases",S.cases);}
+function setQuizFilter(f){S.quizFilter=f;S.quizQs=(f==="all"?[...QUIZ_QS]:QUIZ_QS.filter(q=>q.area===f)).sort(()=>Math.random()-.5);S.quizIdx=0;S.quizSel=null;S.quizDone=false;S.quizScore=0;render();}
+function resetQuiz(){S.quizQs=[...S.quizQs].sort(()=>Math.random()-.5);S.quizIdx=0;S.quizSel=null;S.quizDone=false;S.quizScore=0;render();}
+function answerQuiz(i){if(S.quizSel!==null)return;S.quizSel=i;if(i===S.quizQs[S.quizIdx].ans)S.quizScore++;render();}
+function nextQuiz(){if(S.quizIdx+1>=S.quizQs.length){S.quizDone=true;}else{S.quizIdx++;S.quizSel=null;}render();}
+function setFcFilter(f){S.fcFilter=f;S.fcIdx=0;S.fcFlipped=false;S.fcSeen=new Set();render();}
+function nextFc(){const cards=S.fcFilter==="all"?FLASHCARDS:FLASHCARDS.filter(c=>c.area===S.fcFilter);S.fcSeen.add(S.fcIdx);S.fcFlipped=false;S.fcIdx=(S.fcIdx+1)%cards.length;render();}
+function prevFc(){const cards=S.fcFilter==="all"?FLASHCARDS:FLASHCARDS.filter(c=>c.area===S.fcFilter);S.fcFlipped=false;S.fcIdx=(S.fcIdx-1+cards.length)%cards.length;render();}
+function goFc(i){S.fcFlipped=false;S.fcIdx=i;render();}
+function nextScenario(){S.ilacScenIdx=(S.ilacScenIdx+1)%ILAC_SCENARIOS.length;S.ilacPract={issue:"",law:"",application:"",conclusion:""};S.ilacPractResult=null;render();}
+
+async function doResearch(){
+  const inp=document.getElementById("queryInput");
+  const q=(inp?inp.value:S.query).trim();
+  if(!q||S.loading)return;
+  S.loading=true;S.query="";render();
+  const activeArea=LAW_AREAS.find(a=>a.id===S.selArea);
+  const activeType=QUERY_TYPES.find(t=>t.id===S.selType);
+  const juris=JURISDICTIONS.filter(j=>S.selJuris.includes(j.id));
+  const text=await callClaude([{role:"user",content:q}],buildSys());
+  S.history=[{id:Date.now(),query:q,response:text,area:activeArea,type:activeType,jurisdictions:juris},...S.history];
+  S.loading=false;render();
+}
+
+async function doPeeal(){
+  const filled=Object.values(S.peeal).filter(v=>v.trim());
+  if(filled.length<3||S.loading)return;
+  S.loading=true;render();
+  const prompt=`Review this PEEAL argument${S.peealArea?` in ${S.peealArea}`:""}:\nP: ${S.peeal.point}\nE: ${S.peeal.explanation}\nE: ${S.peeal.evidence}\nA: ${S.peeal.application}\nL: ${S.peeal.link}\n\nProvide: (1) enhanced PEEAL version, (2) missing NZ citations, (3) one key weakness. **Bold** case names and legislation.`;
+  S.peealResult=await callClaude([{role:"user",content:prompt}],"You are LexNZ, an expert NZ legal writing tutor. Help students build strong PEEAL arguments grounded in NZ law.");
+  S.loading=false;render();
+}
+
+async function doIlacBuild(){
+  const filled=Object.values(S.ilacBuild).filter(v=>v.trim());
+  if(filled.length<2||S.loading)return;
+  S.loading=true;render();
+  const prompt=`Review this ILAC analysis${S.ilacBuildArea?` in ${S.ilacBuildArea}`:""}:\nI: ${S.ilacBuild.issue}\nL: ${S.ilacBuild.law}\nA: ${S.ilacBuild.application}\nC: ${S.ilacBuild.conclusion}\n\nProvide: (1) enhanced ILAC version, (2) section feedback, (3) NZ cases/legislation to add, (4) top improvement tip. **Bold** case names and legislation.`;
+  S.ilacBuildResult=await callClaude([{role:"user",content:prompt}],"You are LexNZ, an expert NZ legal writing tutor specialising in the ILAC method.");
+  S.loading=false;render();
+}
+
+async function doIlacPractice(){
+  const filled=Object.values(S.ilacPract).filter(v=>v.trim());
+  if(filled.length<2||S.loading)return;
+  S.loading=true;render();
+  const sc=ILAC_SCENARIOS[S.ilacScenIdx];
+  const prompt=`Mark this ILAC answer for ${sc.area}:\nSCENARIO: ${sc.facts}\nI: ${S.ilacPract.issue}\nL: ${S.ilacPract.law}\nA: ${S.ilacPract.application}\nC: ${S.ilacPract.conclusion}\n\nProvide: (1) mark out of 10, (2) section scores (I/2, L/3, A/3, C/2), (3) model answer with NZ citations, (4) single most important improvement. **Bold** case names and legislation.`;
+  S.ilacPractResult=await callClaude([{role:"user",content:prompt}],"You are LexNZ, an expert NZ law tutor. Mark ILAC answers fairly with specific feedback and always provide a model answer.",1200);
+  S.loading=false;render();
+}
+
+function bindEvents(){
+  const inp=document.getElementById("queryInput");
+  if(inp){
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))doResearch();});
+    inp.value=S.query||"";
+    inp.addEventListener("input",e=>S.query=e.target.value);
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
