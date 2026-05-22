@@ -66,7 +66,7 @@ LexNZ always anchors answers in binding NZ authority first. Toggle persuasive ju
 | Jurisdiction | Status |
 |---|---|
 | 🇳🇿 New Zealand | **Binding — always on** |
-| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England & Wales | Persuasive — shared common law |
+| 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Persuasive — shared common law |
 | 🇦🇺 Australia | Persuasive — Commonwealth |
 | 🇨🇦 Canada | Persuasive — Commonwealth |
 | 🇮🇪 Ireland | Persuasive — common law |
